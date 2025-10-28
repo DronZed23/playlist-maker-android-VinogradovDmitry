@@ -6,7 +6,6 @@ import com.example.myapplication.data.TracksSearchResponse
 import kotlinx.coroutines.delay
 
 class TracksRepositoryImpl(private val networkClient: NetworkClient) : TracksRepository {
-
     override suspend fun searchTracks(expression: String): List<Track> {
         val response = networkClient.doRequest(TracksSearchRequest(expression))
         delay(1000) // Эмуляция задержки сети
