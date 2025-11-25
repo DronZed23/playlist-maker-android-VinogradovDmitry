@@ -1,6 +1,5 @@
 package com.example.myapplication.domain
 
-import com.example.myapplication.data.NetworkClient
 import com.example.myapplication.data.TracksSearchRequest
 import com.example.myapplication.data.TracksSearchResponse
 import kotlinx.coroutines.delay

@@ -82,7 +82,7 @@ class SettingsActivity : ComponentActivity() {
                                 ShareAppRow()
                             }
                         )
-                        SupportRow(supportEmail = "student@example.com")
+                        SupportRow(supportEmail = stringResource(R.string.supportEmail))
                         UserAgreementRow()
                     }
                 }
@@ -215,7 +215,7 @@ fun ShareAppRow() {
             .clickable {
                 val shareIntent = Intent().apply {
                     action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, "Здравствуйте! Посмотрите это приложение: [ваша ссылка]")
+                    putExtra(Intent.EXTRA_TEXT, "")
                     type = "text/plain"
                 }
                 context.startActivity(
@@ -249,7 +249,7 @@ fun SupportRow(
                         if (intent.resolveActivity(context.packageManager) != null) {
                             context.startActivity(intent)
                         } else {
-                            Toast.makeText(context, "Почтовый клиент не установлен", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "", Toast.LENGTH_SHORT).show()
                         }
                     }
             )

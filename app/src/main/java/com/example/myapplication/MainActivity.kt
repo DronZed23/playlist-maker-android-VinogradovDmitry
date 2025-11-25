@@ -60,7 +60,7 @@ fun Header() {
         contentAlignment = Alignment.CenterStart
     ) {
         Text(
-            text = "Playlist maker",
+            text = stringResource(R.string.playlistMaker),
             color = Color.White,
             style = customTextStyle(),
             modifier = Modifier.padding(start = 16.dp)
@@ -96,7 +96,7 @@ fun BottomWhiteBlock(modifier: Modifier = Modifier) {
         ButtonWithPadding(text = stringResource(R.string.favorite),
             leftIconResId = R.drawable.like,
             rightIconResId = R.drawable.contunie_btn,
-            targetActivity = SearchActivity::class.java
+            targetActivity = FavouriteActivity::class.java
         )
         ButtonWithPadding(stringResource(id = R.string.settings),
             leftIconResId = R.drawable.setting,
