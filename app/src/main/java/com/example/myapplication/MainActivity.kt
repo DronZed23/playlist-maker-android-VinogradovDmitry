@@ -21,18 +21,78 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.runtime.*
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
+                var showBottomSheet by remember { mutableStateOf(false) }
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainContent(modifier = Modifier.padding(innerPadding))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Header()
+                            BottomWhiteBlock(modifier = Modifier.weight(1f))
+                        }
+                        FloatingActionButton(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .align(Alignment.BottomEnd),
+                            onClick = { showBottomSheet = true },
+                            containerColor = Color.Gray,
+                            contentColor = Color.White,
+                            shape = CircleShape
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = "Добавить"
+                            )
+                        }
+                        if (showBottomSheet) {
+                            ModalBottomSheet(
+                                onDismissRequest = { showBottomSheet = false }
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "Это панель BottomSheet",
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.Center,
+                                        style = TextStyle(fontSize = 20.sp)
+                                    )
+                                    Icon(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .padding(top = 16.dp),
+                                        imageVector = Icons.Default.Home,
+                                        contentDescription = "Icon"
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

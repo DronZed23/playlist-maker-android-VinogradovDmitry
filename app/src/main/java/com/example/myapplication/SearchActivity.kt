@@ -108,7 +108,7 @@ fun SearchScreen(
             shape = RoundedCornerShape(8.dp),
             singleLine = true,
             leadingIcon = {
-                IconButton(onClick = { viewModel.search(text) }) {
+                IconButton(onClick = { if(text.trim().length == 0){ viewModel.clearSearch() } else  viewModel.search(text) }) {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = stringResource(R.string.search),
