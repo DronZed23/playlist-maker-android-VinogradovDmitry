@@ -151,7 +151,7 @@ fun BottomWhiteBlock(modifier: Modifier = Modifier) {
         ButtonWithPadding(text = stringResource(R.string.playlist),
             leftIconResId = R.drawable.music,
             rightIconResId = R.drawable.contunie_btn,
-            targetActivity = SearchActivity::class.java
+            targetActivity = PlaylistActivity::class.java
         )
         ButtonWithPadding(text = stringResource(R.string.favorite),
             leftIconResId = R.drawable.like,

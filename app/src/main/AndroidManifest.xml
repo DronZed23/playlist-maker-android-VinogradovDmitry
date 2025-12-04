@@ -22,6 +22,7 @@
         </activity>
         <activity android:name=".SettingsActivity"></activity>
         <activity android:name=".SearchActivity"></activity>
-        <activity android:name=".FavouriteActivity"></activity>>
+        <activity android:name=".FavouriteActivity"></activity>
+        <activity android:name=".PlaylistActivity"></activity>
     </application>
 </manifest>
