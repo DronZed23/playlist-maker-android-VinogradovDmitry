@@ -24,5 +24,6 @@
         <activity android:name=".SearchActivity"></activity>
         <activity android:name=".FavouriteActivity"></activity>
         <activity android:name=".PlaylistActivity"></activity>
+        <activity android:name=".TrackDetailsActivity"></activity>
     </application>
 </manifest>
