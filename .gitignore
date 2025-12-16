@@ -1,34 +1,89 @@
-# Gradle files
+# ========================================
+# Android / Gradle
+# ========================================
 .gradle/
 build/
+.cxx/
+.externalNativeBuild/
+captures/
 
-# Local configuration file (sdk path, etc)
+# Generated files
+**/build/generated/
+**/build/intermediates/
+**/build/tmp/
+**/build/kotlin/
+**/build/compose_metrics/
+
+# Android Studio / IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+.DS_Store
 local.properties
 
-# Log/OS Files
-*.log
+# Room schemas (если не хочешь коммитить схемы БД)
+# Раскомментируй, если не нужны в репозитории
+# app/schemas/
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.aab
+# ========================================
+# Detekt
+# ========================================
+# Отчёты detekt
+/build/reports/detekt/
+detekt-report.*
+detekt.html
+detekt.xml
+detekt-rules/
+!detekt-rules/build.gradle.kts
+!detekt-rules/settings.gradle.kts
+
+# Базовая линия (baseline) — можно коммитить, но многие её игнорят
+# Рекомендую всё-таки закоммитить, чтобы CI видел одинаковые правила
+# /config/detekt/baseline.xml
+
+# Если ты создал отдельный модуль :detekt-rules
+detekt-rules/build/
+detekt-rules/.gradle/
+
+# ========================================
+# Gradle Wrapper
+# ========================================
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+gradle/wrapper/gradle-wrapper.properties
+gradlew
+gradlew.bat
+
+# ========================================
+# Android artifacts
+# ========================================
 *.apk
+*.aab
+*.ap_
 output-metadata.json
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
-
-# Keystore files
+# ========================================
+# Keystore
+# ========================================
 *.jks
 *.keystore
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
-
-# Android Profiling
+# ========================================
+# Logs & temp
+# ========================================
+*.log
+*.tmp
+*.bak
+*.swp
 *.hprof
+
+# ========================================
+# Kotlin / JVM
+# ========================================
+out/
+*.class
+
+# Kotlin compiler caches
+.konan/
+.kotlin/
