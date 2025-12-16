@@ -28,7 +28,6 @@ import androidx.core.net.toUri
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.ui.materialTheme.YS
 
-// Определение цветов для светлой и темной темы
 private val ColorWhite = Color.White
 private val ColorBlack = Color.Black
 private val BgColorLight = ColorWhite

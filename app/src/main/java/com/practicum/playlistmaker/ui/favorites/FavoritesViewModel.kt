@@ -16,7 +16,6 @@ class FavoritesViewModel(
     private val _tracksFavoriteState = MutableStateFlow<List<Track>>(emptyList())
     val tracksFavoriteState = _tracksFavoriteState.asStateFlow()
 
-    // Загрузка избранных треков
     fun fetchFavorites() {
         viewModelScope.launch {
             trackRepository.fetchFavoriteTracks().collectLatest { favorites ->
@@ -25,7 +24,6 @@ class FavoritesViewModel(
         }
     }
 
-    // Обновление статуса избранного у трека
     fun updateFavoriteStatus(track: Track, favoriteStatus: Boolean) {
         viewModelScope.launch {
             trackRepository.setTrackFavoriteStatus(track, favoriteStatus)

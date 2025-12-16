@@ -2,7 +2,6 @@ package com.practicum.playlistmaker.domain
 
 import kotlinx.coroutines.flow.Flow
 
-// Интерфейс для работы с коллекцией плейлистов
 interface PlaylistCollectionRepository {
     fun fetchAllPlaylists(): Flow<List<Playlist>>
     fun fetchPlaylistById(id: Long): Flow<Playlist?>

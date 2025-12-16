@@ -45,7 +45,6 @@ fun FavoritesScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Header row with back button and title
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -72,7 +71,6 @@ fun FavoritesScreen(
                 )
             }
 
-            // Content display: empty or list
             if (favoriteTracks.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),

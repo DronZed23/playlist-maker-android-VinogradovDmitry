@@ -47,7 +47,7 @@ fun PlaylistsScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Заголовок с кнопкой назад
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -73,7 +73,7 @@ fun PlaylistsScreen(
                     color = textColorScheme
                 )
             }
-            // Список плейлистов
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -97,7 +97,7 @@ fun PlaylistsScreen(
                 }
             }
         }
-        // Кнопка добавления нового плейлиста
+
         FloatingActionButton(
             onClick = onCreatePlaylist,
             modifier = Modifier
@@ -116,7 +116,7 @@ fun PlaylistsScreen(
                 modifier = Modifier.padding(13.dp)
             )
         }
-        // Диалог подтверждения удаления плейлиста
+
         if (showDeleteConfirmation && playlistIdToDelete != null) {
             AlertDialog(
                 shape = RoundedCornerShape(4.dp),

@@ -16,7 +16,6 @@ class PlaylistsRepositoryImpl(
     private val trackDao: TrackDataAccess
 ) : PlaylistCollectionRepository {
 
-    // Реализация функции из интерфейса
     override fun fetchAllPlaylists(): Flow<List<Playlist>> = playlistDao.fetchAllPlaylists().map { playlistsWithTracks ->
         playlistsWithTracks.map { pwt ->
             Playlist(
