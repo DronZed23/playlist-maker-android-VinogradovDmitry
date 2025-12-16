@@ -4,50 +4,48 @@ import android.content.Context
 import com.practicum.playlistmaker.data.db.AppDatabase
 import com.practicum.playlistmaker.data.network.ITunesApiService
 import com.practicum.playlistmaker.data.network.RetrofitNetworkClient
-import com.practicum.playlistmaker.data.preferences.SearchHistoryPreferences
-import com.practicum.playlistmaker.data.preferences.dataStore
+import com.practicum.playlistmaker.data.preferences.SearchHistoryManager
+import com.practicum.playlistmaker.data.preferences.historyDataStore
 import com.practicum.playlistmaker.data.repository.PlaylistsRepositoryImpl
 import com.practicum.playlistmaker.data.repository.SearchHistoryRepositoryImpl
 import com.practicum.playlistmaker.data.repository.TracksLocalRepositoryImpl
 import com.practicum.playlistmaker.data.repository.TracksRepositoryImpl
-import com.practicum.playlistmaker.domain.PlaylistsRepository
 import com.practicum.playlistmaker.domain.SearchHistoryRepository
-import com.practicum.playlistmaker.domain.TracksLocalRepository
 import com.practicum.playlistmaker.domain.TracksRepository
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object Creator {
-    private const val BASE_URL = "https://itunes.apple.com"
-    private val apiService: ITunesApiService by lazy {
+    private const val URL_BASE = "https://itunes.apple.com"
+    private val serviceApi: ITunesApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(URL_BASE)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ITunesApiService::class.java)
     }
 
-    fun provideTracksRepository(): TracksRepository {
-        val networkClient = RetrofitNetworkClient(apiService)
+    fun getTracksRepository(): TracksRepository {
+        val networkClient = RetrofitNetworkClient(serviceApi)
         return TracksRepositoryImpl(networkClient)
     }
 
-    fun provideAppDatabase(context: Context): AppDatabase {
+    fun getDatabase(context: Context): AppDatabase {
         return AppDatabase.getDatabase(context)
     }
 
-    fun providePlaylistsRepository(context: Context): PlaylistsRepository {
-        val db = provideAppDatabase(context)
-        return PlaylistsRepositoryImpl(db.playlistDao(), db.trackDao())
+    fun getPlaylistsRepository(context: Context): PlaylistsRepositoryImpl {
+        val database = getDatabase(context)
+        return PlaylistsRepositoryImpl(database.playlistDao(), database.trackDao())
     }
 
-    fun provideTracksLocalRepository(context: Context): TracksLocalRepository {
-        val db = provideAppDatabase(context)
-        return TracksLocalRepositoryImpl(db.trackDao(), db.playlistDao())
+    fun getLocalTracksRepository(context: Context): TracksLocalRepositoryImpl {
+        val database = getDatabase(context)
+        return TracksLocalRepositoryImpl(database.trackDao(), database.playlistDao())
     }
 
-    fun provideSearchHistoryRepository(context: Context): SearchHistoryRepository {
-        val preferences = SearchHistoryPreferences(context.dataStore)
+    fun getSearchHistoryRepository(context: Context): SearchHistoryRepository {
+        val preferences = SearchHistoryManager(context.historyDataStore)
         return SearchHistoryRepositoryImpl(preferences)
     }
 }

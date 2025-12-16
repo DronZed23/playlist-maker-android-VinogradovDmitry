@@ -1,10 +1,10 @@
 package com.practicum.playlistmaker.data.repository
 
 import com.practicum.playlistmaker.data.dao.PlaylistDao
-import com.practicum.playlistmaker.data.dao.TrackDao
+import com.practicum.playlistmaker.data.dao.TrackDataAccess
 import com.practicum.playlistmaker.data.entity.PlaylistEntity
 import com.practicum.playlistmaker.domain.Playlist
-import com.practicum.playlistmaker.domain.PlaylistsRepository
+import com.practicum.playlistmaker.domain.PlaylistCollectionRepository
 import com.practicum.playlistmaker.domain.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -13,9 +13,11 @@ import kotlinx.coroutines.withContext
 
 class PlaylistsRepositoryImpl(
     private val playlistDao: PlaylistDao,
-    private val trackDao: TrackDao
-) : PlaylistsRepository {
-    override fun getAllPlaylists(): Flow<List<Playlist>> = playlistDao.getAllPlaylists().map { playlistsWithTracks ->
+    private val trackDao: TrackDataAccess
+) : PlaylistCollectionRepository {
+
+    // Реализация функции из интерфейса
+    override fun fetchAllPlaylists(): Flow<List<Playlist>> = playlistDao.fetchAllPlaylists().map { playlistsWithTracks ->
         playlistsWithTracks.map { pwt ->
             Playlist(
                 id = pwt.playlist.id,
@@ -37,7 +39,7 @@ class PlaylistsRepositoryImpl(
         }
     }
 
-    override fun getPlaylist(playlistId: Long): Flow<Playlist?> = playlistDao.getPlaylist(playlistId).map { pwt ->
+    override fun fetchPlaylistById(id: Long): Flow<Playlist?> = playlistDao.fetchPlaylistDetails(id).map { pwt ->
         pwt?.let {
             Playlist(
                 id = it.playlist.id,
@@ -59,12 +61,18 @@ class PlaylistsRepositoryImpl(
         }
     }
 
-    override suspend fun addNewPlaylist(name: String, description: String, coverImageUri: String?) = withContext(Dispatchers.IO) {
-        playlistDao.insertPlaylist(PlaylistEntity(name = name, description = description, coverImageUri = coverImageUri))
+    override suspend fun createPlaylist(
+        title: String,
+        description: String,
+        coverImageUri: String?
+    ) = withContext(Dispatchers.IO) {
+        playlistDao.addPlaylist(
+            PlaylistEntity(name = title, description = description, coverImageUri = coverImageUri)
+        )
     }
 
-    override suspend fun deletePlaylistById(id: Long) = withContext(Dispatchers.IO) {
-        playlistDao.deleteCrossRefsForPlaylist(id)
-        playlistDao.deletePlaylist(PlaylistEntity(id = id, name = "", description = ""))
+    override suspend fun removePlaylist(id: Long) = withContext(Dispatchers.IO) {
+        playlistDao.clearCrossRefsForPlaylist(id)
+        playlistDao.removePlaylist(PlaylistEntity(id = id, name = "", description = ""))
     }
 }

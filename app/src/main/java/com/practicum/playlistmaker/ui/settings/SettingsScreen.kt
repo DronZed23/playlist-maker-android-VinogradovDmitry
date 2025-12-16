@@ -5,18 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -39,49 +28,52 @@ import androidx.core.net.toUri
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.ui.materialTheme.YS
 
-private val White = Color.White
-private val Black = Color.Black
-private val ScreenBackgroundLight = White
-private val ListBackgroundLight = White
-private val ListTextLight = Black
+// Определение цветов для светлой и темной темы
+private val ColorWhite = Color.White
+private val ColorBlack = Color.Black
+private val BgColorLight = ColorWhite
+private val ListBgLight = ColorWhite
+private val TextColorLight = ColorBlack
 private val IconTintLight = Color(0xFFAEAFB4)
-private val LightTrack = Color(0xFFE6E8EB)
-private val LightKnob = Color(0xFFAEAFB4)
-private val ScreenBackgroundDark = Color(0xFF1A1B22)
-private val ListBackgroundDark = ScreenBackgroundDark
-private val ListTextDark = White
-private val IconTintDark = White
-private val ActiveBlue = Color(0xFF3772E7)
-private val DarkTrackFallback = Color(0xFF2C3E66)
-private val DarkKnobFallback = Color(0xFFAEAFB4)
+private val TrackColorLight = Color(0xFFE6E8EB)
+private val KnobColorLight = Color(0xFFAEAFB4)
 
+private val BgColorDark = Color(0xFF1A1B22)
+private val ListBgDark = BgColorDark
+private val TextColorDark = ColorWhite
+private val IconTintDark = ColorWhite
+private val ActiveBlueColor = Color(0xFF3772E7)
+private val TrackFallbackDark = Color(0xFF2C3E66)
+private val KnobFallbackDark = Color(0xFFAEAFB4)
+
+// Переключатель с анимацией
 @Composable
 fun CustomSwitch(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    isDarkTheme: Boolean,
+    isChecked: Boolean,
+    onToggle: (Boolean) -> Unit,
+    darkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val knobOffset by animateDpAsState(if (checked) 17.dp else 0.dp)
+    val knobOffset by animateDpAsState(if (isChecked) 17.dp else 0.dp)
     val trackColor by animateColorAsState(
         targetValue = when {
-            checked -> ActiveBlue.copy(alpha = 0.48f)
-            isDarkTheme -> DarkTrackFallback
-            else -> LightTrack
+            isChecked -> ActiveBlueColor.copy(alpha = 0.48f)
+            darkTheme -> TrackFallbackDark
+            else -> TrackColorLight
         }
     )
     val knobColor by animateColorAsState(
         targetValue = when {
-            checked -> ActiveBlue
-            isDarkTheme -> DarkKnobFallback.copy(alpha = 0.6f)
-            else -> LightKnob
+            isChecked -> ActiveBlueColor
+            darkTheme -> KnobFallbackDark.copy(alpha = 0.6f)
+            else -> KnobColorLight
         }
     )
     Box(
         modifier = modifier
             .width(35.dp)
             .height(18.dp)
-            .clickable { onCheckedChange(!checked) }
+            .clickable { onToggle(!isChecked) }
     ) {
         Box(
             modifier = Modifier
@@ -101,25 +93,28 @@ fun CustomSwitch(
     }
 }
 
+// Основная страница настроек
 @Composable
 fun SettingsScreen(
-    isDarkTheme: Boolean,
-    onToggleTheme: (Boolean) -> Unit,
-    onBackClick: () -> Unit
+    darkThemeEnabled: Boolean,
+    onThemeToggle: (Boolean) -> Unit,
+    onBackPressed: () -> Unit
 ) {
     val context = LocalContext.current
-    val titleColor = if (!isDarkTheme) ListTextLight else ListTextDark
-    val screenBg = if (!isDarkTheme) ScreenBackgroundLight else ScreenBackgroundDark
-    val shareMessage = stringResource(R.string.share_message)
-    val supportEmail = stringResource(R.string.support_email)
-    val supportSubject = stringResource(R.string.support_subject)
-    val supportBody = stringResource(R.string.support_body)
-    val agreementUrl = stringResource(R.string.user_agreement_url)
+    val titleTextColor = if (!darkThemeEnabled) TextColorLight else TextColorDark
+    val backgroundColor = if (!darkThemeEnabled) BgColorLight else BgColorDark
+    val shareMsg = stringResource(R.string.share_message)
+    val email = stringResource(R.string.support_email)
+    val emailSubject = stringResource(R.string.support_subject)
+    val emailBody = stringResource(R.string.support_body)
+    val userAgreementUrl = stringResource(R.string.user_agreement_url)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(screenBg)
+            .background(backgroundColor)
     ) {
+        // Заголовок с кнопкой назад
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -127,12 +122,12 @@ fun SettingsScreen(
                 .height(56.dp)
                 .padding(start = 16.dp)
         ) {
-            IconButton(onClick = onBackClick) {
+            IconButton(onClick = onBackPressed) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_arrow_left),
+                    painter = painterResource(R.drawable.ic_arrow_left_icon),
                     contentDescription = stringResource(R.string.back),
                     modifier = Modifier.size(24.dp),
-                    tint = titleColor
+                    tint = titleTextColor
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))
@@ -142,91 +137,95 @@ fun SettingsScreen(
                 fontSize = 22.sp,
                 lineHeight = 26.sp,
                 fontWeight = FontWeight.Medium,
-                color = titleColor
+                color = titleTextColor
             )
         }
+
+        // Меню настроек
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
             item {
                 SettingsMenuItem(
-                    title = stringResource(R.string.settings_item_toggle),
-                    isSwitch = true,
-                    switchChecked = isDarkTheme,
-                    onSwitchChange = onToggleTheme,
-                    isDarkTheme = isDarkTheme
+                    titleText = stringResource(R.string.settings_item_toggle),
+                    isSwitchItem = true,
+                    switchState = darkThemeEnabled,
+                    onSwitchChanged = onThemeToggle,
+                    darkTheme = darkThemeEnabled
                 )
             }
             item {
                 SettingsMenuItem(
-                    title = stringResource(R.string.settings_item_share),
-                    iconResId = R.drawable.ic_share,
-                    onClick = {
+                    titleText = stringResource(R.string.settings_item_share),
+                    iconResId = R.drawable.ic_share_button,
+                    onItemClicked = {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, shareMessage)
+                            putExtra(Intent.EXTRA_TEXT, shareMsg)
                         }
                         context.startActivity(Intent.createChooser(shareIntent, null))
                     },
-                    isDarkTheme = isDarkTheme
+                    darkTheme = darkThemeEnabled
                 )
             }
             item {
                 SettingsMenuItem(
-                    title = stringResource(R.string.settings_item_support),
-                    iconResId = R.drawable.ic_support,
-                    onClick = {
+                    titleText = stringResource(R.string.settings_item_support),
+                    iconResId = R.drawable.ic_support_button,
+                    onItemClicked = {
                         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                             data = "mailto:".toUri()
-                            putExtra(Intent.EXTRA_EMAIL, arrayOf(supportEmail))
-                            putExtra(Intent.EXTRA_SUBJECT, supportSubject)
-                            putExtra(Intent.EXTRA_TEXT, supportBody)
+                            putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+                            putExtra(Intent.EXTRA_SUBJECT, emailSubject)
+                            putExtra(Intent.EXTRA_TEXT, emailBody)
                         }
                         context.startActivity(emailIntent)
                     },
-                    isDarkTheme = isDarkTheme
+                    darkTheme = darkThemeEnabled
                 )
             }
             item {
                 SettingsMenuItem(
-                    title = stringResource(R.string.settings_item_agreement),
-                    iconResId = R.drawable.ic_chevron_right,
-                    onClick = {
-                        val agreementIntent = Intent(Intent.ACTION_VIEW, agreementUrl.toUri())
+                    titleText = stringResource(R.string.settings_item_agreement),
+                    iconResId = R.drawable.ic_chevron_right_icon,
+                    onItemClicked = {
+                        val agreementIntent = Intent(Intent.ACTION_VIEW, userAgreementUrl.toUri())
                         context.startActivity(agreementIntent)
                     },
-                    isDarkTheme = isDarkTheme
+                    darkTheme = darkThemeEnabled
                 )
             }
         }
     }
 }
 
+// Компонент пункта меню
 @Composable
 fun SettingsMenuItem(
-    title: String,
-    isSwitch: Boolean = false,
-    switchChecked: Boolean = false,
-    onSwitchChange: (Boolean) -> Unit = {},
-    onClick: () -> Unit = {},
+    titleText: String,
+    isSwitchItem: Boolean = false,
+    switchState: Boolean = false,
+    onSwitchChanged: (Boolean) -> Unit = {},
+    onItemClicked: () -> Unit = {},
     iconResId: Int? = null,
-    isDarkTheme: Boolean = false
+    darkTheme: Boolean = false
 ) {
-    val textColor = if (!isDarkTheme) ListTextLight else ListTextDark
-    val iconColor = if (!isDarkTheme) IconTintLight else IconTintDark
-    val itemBackground = if (!isDarkTheme) ListBackgroundLight else ListBackgroundDark
+    val textColor = if (!darkTheme) TextColorLight else TextColorDark
+    val iconTint = if (!darkTheme) IconTintLight else IconTintDark
+    val backgroundColor = if (!darkTheme) ListBgLight else ListBgDark
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(61.dp)
-            .background(itemBackground)
-            .clickable(enabled = !isSwitch) { onClick() }
+            .background(backgroundColor)
+            .clickable(enabled = !isSwitchItem) { onItemClicked() }
             .padding(start = 16.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = title,
+            text = titleText,
             fontFamily = YS,
             fontSize = 16.sp,
             lineHeight = 19.sp,
@@ -234,19 +233,19 @@ fun SettingsMenuItem(
             color = textColor,
             modifier = Modifier.weight(1f)
         )
-        if (isSwitch) {
+        if (isSwitchItem) {
             CustomSwitch(
-                checked = switchChecked,
-                onCheckedChange = onSwitchChange,
-                isDarkTheme = isDarkTheme
+                isChecked = switchState,
+                onToggle = onSwitchChanged,
+                darkTheme = darkTheme
             )
         } else {
             iconResId?.let {
                 Icon(
                     painter = painterResource(it),
-                    contentDescription = title,
+                    contentDescription = titleText,
                     modifier = Modifier.size(24.dp),
-                    tint = iconColor
+                    tint = iconTint
                 )
             }
         }

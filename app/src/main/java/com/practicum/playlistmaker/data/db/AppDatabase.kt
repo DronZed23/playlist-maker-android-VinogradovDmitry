@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.practicum.playlistmaker.data.dao.PlaylistDao
-import com.practicum.playlistmaker.data.dao.TrackDao
+import com.practicum.playlistmaker.data.dao.TrackDataAccess
 import com.practicum.playlistmaker.data.entity.PlaylistEntity
 import com.practicum.playlistmaker.data.entity.PlaylistTrackCrossRef
 import com.practicum.playlistmaker.data.entity.TrackEntity
@@ -21,7 +21,7 @@ import com.practicum.playlistmaker.data.entity.TrackEntity
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun playlistDao(): PlaylistDao
-    abstract fun trackDao(): TrackDao
+    abstract fun trackDao(): TrackDataAccess
 
     companion object {
         @Volatile

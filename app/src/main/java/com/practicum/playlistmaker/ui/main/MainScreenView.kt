@@ -19,27 +19,27 @@ import androidx.compose.ui.unit.sp
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.ui.materialTheme.YS
 
-private val ActiveBlue = Color(0xFF3772E7)
-private val TextGray = Color(0xFFAEAFB4)
-private val SurfaceLight = Color.White
-private val SurfaceDark = Color(0xFF1A1B22)
-private val TitleBlack = Color(0xFF1A1B22)
-private val TitleWhite = Color.White
+private val HighlightBlue = Color(0xFF3772E7)
+private val GrayText = Color(0xFFAEAFB4)
+private val LightBackground = Color.White
+private val DarkBackground = Color(0xFF1A1B22)
+private val BlackTitle = Color(0xFF1A1B22)
+private val WhiteTitle = Color.White
 
 @Composable
-fun MainScreen(
-    onSearchClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onPlaylistsClick: () -> Unit,
-    onFavoritesClick: () -> Unit,
-    isDarkTheme: Boolean
+fun MainScreenView(
+    onSearchTap: () -> Unit,
+    onSettingsTap: () -> Unit,
+    onPlaylistTap: () -> Unit,
+    onFavoritesTap: () -> Unit,
+    darkThemeEnabled: Boolean
 ) {
-    val chevronTint = if (isDarkTheme) TitleWhite else TextGray
+    val chevronColor = if (darkThemeEnabled) WhiteTitle else GrayText
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(ActiveBlue)
+                .background(HighlightBlue)
                 .padding(horizontal = 16.dp, vertical = 28.dp)
         ) {
             Text(
@@ -51,13 +51,13 @@ fun MainScreen(
                 fontWeight = FontWeight.Bold
             )
         }
-        val containerBg = if (isDarkTheme) SurfaceDark else SurfaceLight
+        val backgroundContainer = if (darkThemeEnabled) DarkBackground else LightBackground
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 70.dp)
                 .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                .background(containerBg)
+                .background(backgroundContainer)
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -65,44 +65,44 @@ fun MainScreen(
                     .padding(horizontal = 16.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                item { MainMenuItem(R.drawable.ic_search_main, stringResource(R.string.search), onSearchClick, chevronTint, isDarkTheme) }
-                item { MainMenuItem(R.drawable.ic_playlists, stringResource(R.string.playlists), onPlaylistsClick, chevronTint, isDarkTheme) }
-                item { MainMenuItem(R.drawable.ic_favorite, stringResource(R.string.favorites), onFavoritesClick, chevronTint, isDarkTheme) }
-                item { MainMenuItem(R.drawable.ic_settings, stringResource(R.string.settings), onSettingsClick, chevronTint, isDarkTheme) }
+                item { MenuEntry(iconResId = R.drawable.ic_search_main_icon, label = stringResource(R.string.search), onClick = onSearchTap, chevronColor, darkThemeEnabled) }
+                item { MenuEntry(iconResId = R.drawable.ic_playlists_icon, label = stringResource(R.string.playlists), onClick = onPlaylistTap, chevronColor, darkThemeEnabled) }
+                item { MenuEntry(iconResId = R.drawable.ic_favorite_heart, label = stringResource(R.string.favorites), onClick = onFavoritesTap, chevronColor, darkThemeEnabled) }
+                item { MenuEntry(iconResId = R.drawable.ic_settings_icon, label = stringResource(R.string.settings), onClick = onSettingsTap, chevronColor, darkThemeEnabled) }
             }
         }
     }
 }
 
 @Composable
-private fun MainMenuItem(
+private fun MenuEntry(
     iconResId: Int,
-    title: String,
+    label: String,
     onClick: () -> Unit,
-    chevronTint: Color,
-    isDarkTheme: Boolean
+    chevronColor: Color,
+    darkTheme: Boolean
 ) {
-    val itemBackground = if (isDarkTheme) SurfaceDark else SurfaceLight
-    val contentTint = if (isDarkTheme) TitleWhite else TitleBlack
+    val bgColor = if (darkTheme) DarkBackground else LightBackground
+    val textColor = if (darkTheme) WhiteTitle else BlackTitle
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(66.dp)
             .clickable { onClick() }
             .padding(horizontal = 16.dp)
-            .background(itemBackground),
+            .background(bgColor),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painter = painterResource(id = iconResId),
-            contentDescription = title,
+            contentDescription = label,
             modifier = Modifier.size(24.dp),
-            tint = contentTint
+            tint = textColor
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
-            text = title,
-            color = contentTint,
+            text = label,
+            color = textColor,
             fontFamily = YS,
             fontSize = 22.sp,
             lineHeight = 26.sp,
@@ -110,10 +110,10 @@ private fun MainMenuItem(
             modifier = Modifier.weight(1f)
         )
         Icon(
-            painter = painterResource(id = R.drawable.ic_chevron_right),
+            painter = painterResource(id = R.drawable.ic_chevron_right_icon),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            tint = chevronTint
+            tint = chevronColor
         )
     }
 }

@@ -32,15 +32,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.core.net.toUri
 
 @Composable
-fun PlaylistRow(
+fun PlaylistItem(
     playlist: Playlist,
     textColor: Color,
     secondaryColor: Color,
-    chevronTint: Color? = null,
+    chevronColor: Color? = null,
     backgroundColor: Color,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit = {},
-    showChevron: Boolean = true
+    onItemClick: () -> Unit,
+    onItemLongPress: () -> Unit = {},
+    displayChevron: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -48,8 +48,8 @@ fun PlaylistRow(
             .height(61.dp)
             .background(backgroundColor)
             .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
+                onClick = onItemClick,
+                onLongClick = onItemLongPress
             )
             .padding(horizontal = 13.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -62,7 +62,7 @@ fun PlaylistRow(
                 contentScale = ContentScale.Crop
             )
         } ?: Image(
-            painter = painterResource(R.drawable.ic_add_photo),
+            painter = painterResource(R.drawable.ic_add_playlist_photo),
             contentDescription = null,
             colorFilter = ColorFilter.tint(secondaryColor),
             modifier = Modifier.size(45.dp)
@@ -89,12 +89,12 @@ fun PlaylistRow(
                 color = secondaryColor
             )
         }
-        if (showChevron) {
+        if (displayChevron) {
             Icon(
-                painter = painterResource(R.drawable.ic_chevron_right),
+                painter = painterResource(R.drawable.ic_chevron_right_icon),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                tint = chevronTint ?: secondaryColor
+                tint = chevronColor ?: secondaryColor
             )
         }
     }

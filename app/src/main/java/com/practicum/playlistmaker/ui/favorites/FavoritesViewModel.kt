@@ -3,29 +3,32 @@ package com.practicum.playlistmaker.ui.favorites
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicum.playlistmaker.domain.Track
-import com.practicum.playlistmaker.domain.TracksLocalRepository
+import com.practicum.playlistmaker.domain.TrackStorageRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class FavoritesViewModel(
-    private val tracksLocalRepository: TracksLocalRepository
+    private val trackRepository: TrackStorageRepository
 ) : ViewModel() {
-    private val _favoriteList = MutableStateFlow<List<Track>>(emptyList())
-    val favoriteList = _favoriteList.asStateFlow()
 
-    fun loadFavorites() {
+    private val _tracksFavoriteState = MutableStateFlow<List<Track>>(emptyList())
+    val tracksFavoriteState = _tracksFavoriteState.asStateFlow()
+
+    // Загрузка избранных треков
+    fun fetchFavorites() {
         viewModelScope.launch {
-            tracksLocalRepository.getFavoriteTracks().collectLatest { favorites ->
-                _favoriteList.value = favorites
+            trackRepository.fetchFavoriteTracks().collectLatest { favorites ->
+                _tracksFavoriteState.value = favorites
             }
         }
     }
 
-    fun toggleFavorite(track: Track, isFavorite: Boolean) {
+    // Обновление статуса избранного у трека
+    fun updateFavoriteStatus(track: Track, favoriteStatus: Boolean) {
         viewModelScope.launch {
-            tracksLocalRepository.updateTrackFavoriteStatus(track, isFavorite)
+            trackRepository.setTrackFavoriteStatus(track, favoriteStatus)
         }
     }
 }

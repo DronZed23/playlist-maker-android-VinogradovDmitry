@@ -3,17 +3,7 @@ package com.practicum.playlistmaker.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -24,9 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,42 +26,42 @@ import com.practicum.playlistmaker.ui.materialTheme.YS
 import kotlin.math.max
 
 @Composable
-fun TrackRow(
+fun TrackItem(
     track: AppTrack,
-    isDarkTheme: Boolean,
-    onClick: () -> Unit = {},
-    onLongClick: (() -> Unit)? = null
+    darkTheme: Boolean,
+    onItemClick: () -> Unit = {},
+    onItemLongPress: (() -> Unit)? = null
 ) {
-    val itemBackground = if (!isDarkTheme) Color.White else Color(0xFF1A1B22)
-    val textPrimary = if (!isDarkTheme) Color(0xFF1A1B22) else Color.White
-    val textSecondary = if (!isDarkTheme) Color(0xFFAEAFB4) else Color.White.copy(alpha = 0.84f)
-    val chevronTint = if (!isDarkTheme) Color(0xFFAEAFB4) else Color.White
+    val backgroundColor = if (!darkTheme) Color.White else Color(0xFF1A1B22)
+    val primaryTextColor = if (!darkTheme) Color(0xFF1A1B22) else Color.White
+    val secondaryTextColor = if (!darkTheme) Color(0xFFAEAFB4) else Color.White.copy(alpha = 0.84f)
+    val iconTint = if (!darkTheme) Color(0xFFAEAFB4) else Color.White
 
-    val rowModifier = Modifier
+    val modifier = Modifier
         .fillMaxWidth()
         .heightIn(min = 61.dp)
-        .background(itemBackground)
-        .let { modifier ->
-            if (onLongClick != null) {
-                modifier.combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick
+        .background(backgroundColor)
+        .let { mod ->
+            if (onItemLongPress != null) {
+                mod.combinedClickable(
+                    onClick = onItemClick,
+                    onLongClick = onItemLongPress
                 )
             } else {
-                modifier.clickable(onClick = onClick)
+                mod.clickable(onClick = onItemClick)
             }
         }
         .padding(horizontal = 13.dp, vertical = 8.dp)
 
     Row(
-        modifier = rowModifier,
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = track.artworkUrl100 ?: R.drawable.ic_music,
-            placeholder = painterResource(R.drawable.ic_music),
-            error = painterResource(R.drawable.ic_music),
-            contentDescription = stringResource(R.string.track_item_description, track.trackName),
+            model = track.artworkUrl100 ?: R.drawable.ic_music_image,
+            placeholder = painterResource(R.drawable.ic_music_image),
+            error = painterResource(R.drawable.ic_music_image),
+            contentDescription = null,
             modifier = Modifier
                 .size(45.dp)
                 .clip(RoundedCornerShape(0.dp))
@@ -91,28 +79,28 @@ fun TrackRow(
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
                 lineHeight = 19.sp,
-                color = textPrimary,
+                color = primaryTextColor,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(2.dp))
-            ArtistWithDuration(
+            ArtistDuration(
                 artistName = track.artistName,
                 duration = track.trackTime,
-                textColor = textSecondary
+                textColor = secondaryTextColor
             )
         }
         Icon(
-            painter = painterResource(id = R.drawable.ic_chevron_right),
+            painter = painterResource(id = R.drawable.ic_chevron_right_icon),
             contentDescription = null,
-            tint = chevronTint,
+            tint = iconTint,
             modifier = Modifier.size(24.dp)
         )
     }
 }
 
 @Composable
-private fun ArtistWithDuration(
+private fun ArtistDuration(
     artistName: String,
     duration: String,
     textColor: Color,
@@ -122,24 +110,24 @@ private fun ArtistWithDuration(
         modifier = modifier.fillMaxWidth(),
         content = {
             ArtistText(artistName = artistName, textColor = textColor)
-            DurationPart(duration = duration, textColor = textColor)
+            DurationLabel(duration = duration, textColor = textColor)
         }
     ) { measurables, constraints ->
-        val fixedMeasurable: Measurable = measurables[1]
-        val fixedPlaceable = fixedMeasurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
+        val durationMeasurable = measurables[1]
+        val durationPlaceable = durationMeasurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
 
         val artistConstraints = constraints.copy(
-            maxWidth = constraints.maxWidth - fixedPlaceable.width,
+            maxWidth = constraints.maxWidth - durationPlaceable.width,
             minWidth = 0
         )
         val artistPlaceable = measurables[0].measure(artistConstraints)
 
         val width = constraints.maxWidth
-        val height = max(artistPlaceable.height, fixedPlaceable.height)
+        val height = max(artistPlaceable.height, durationPlaceable.height)
 
         layout(width, height) {
             artistPlaceable.placeRelative(0, (height - artistPlaceable.height) / 2)
-            fixedPlaceable.placeRelative(artistPlaceable.width, (height - fixedPlaceable.height) / 2)
+            durationPlaceable.placeRelative(artistPlaceable.width, (height - durationPlaceable.height) / 2)
         }
     }
 }
@@ -159,7 +147,7 @@ private fun ArtistText(artistName: String, textColor: Color) {
 }
 
 @Composable
-private fun DurationPart(duration: String, textColor: Color) {
+private fun DurationLabel(duration: String, textColor: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {

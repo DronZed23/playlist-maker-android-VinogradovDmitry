@@ -16,38 +16,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.presentation.AppTrack
-import com.practicum.playlistmaker.ui.components.TrackRow
 import com.practicum.playlistmaker.ui.materialTheme.YS
 import androidx.compose.ui.graphics.Color
 import com.practicum.playlistmaker.presentation.toAppTrack
-
+import com.practicum.playlistmaker.ui.components.TrackItem
 
 @Composable
 fun FavoritesScreen(
     viewModel: FavoritesViewModel,
-    onBackClick: () -> Unit,
-    onTrackClick: (AppTrack) -> Unit,
-    isDarkTheme: Boolean
+    onBackClicked: () -> Unit,
+    onTrackSelected: (AppTrack) -> Unit,
+    darkMode: Boolean
 ) {
-    val favoriteList by viewModel.favoriteList.collectAsState(emptyList())
+    val favoriteTracks by viewModel.tracksFavoriteState.collectAsState(initial = emptyList())
 
     LaunchedEffect(Unit) {
-        viewModel.loadFavorites()
+        viewModel.fetchFavorites()
     }
 
-    val backgroundColor = if (isDarkTheme) Color(0xFF1A1B22) else Color.White
-    val textColor = if (isDarkTheme) Color.White else Color(0xFF1A1B22)
-    Color(0xFFAEAFB4)
+    val bgColor = if (darkMode) Color(0xFF1A1B22) else Color.White
+    val fontColor = if (darkMode) Color.White else Color(0xFF1A1B22)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(bgColor)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-
+            // Header row with back button and title
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -55,12 +53,12 @@ fun FavoritesScreen(
                     .height(56.dp)
                     .padding(start = 16.dp)
             ) {
-                IconButton(onClick = onBackClick) {
+                IconButton(onClick = onBackClicked) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_arrow_left),
+                        painter = painterResource(R.drawable.ic_arrow_left_icon),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = textColor
+                        tint = fontColor
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -70,11 +68,12 @@ fun FavoritesScreen(
                     fontSize = 22.sp,
                     lineHeight = 26.sp,
                     fontWeight = FontWeight.Medium,
-                    color = textColor
+                    color = fontColor
                 )
             }
 
-            if (favoriteList.isEmpty()) {
+            // Content display: empty or list
+            if (favoriteTracks.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.TopCenter
@@ -84,13 +83,10 @@ fun FavoritesScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-
-                        val emptyIcon =
-                            if (isDarkTheme) R.drawable.ic_no_results_dark
-                            else R.drawable.ic_no_results_light
+                        val iconResId = if (darkMode) R.drawable.ic_no_results_black else R.drawable.ic_no_results_grey
 
                         Icon(
-                            painter = painterResource(emptyIcon),
+                            painter = painterResource(iconResId),
                             contentDescription = null,
                             modifier = Modifier.size(120.dp),
                             tint = Color.Unspecified
@@ -103,7 +99,7 @@ fun FavoritesScreen(
                             lineHeight = 22.sp,
                             fontWeight = FontWeight.Normal,
                             textAlign = TextAlign.Center,
-                            color = textColor,
+                            color = fontColor,
                             modifier = Modifier
                                 .padding(horizontal = 24.dp)
                                 .fillMaxWidth()
@@ -114,14 +110,13 @@ fun FavoritesScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    itemsIndexed(favoriteList) { _, track ->
-
-                        TrackRow(
+                    itemsIndexed(favoriteTracks) { _, track ->
+                        TrackItem(
                             track = track.toAppTrack(),
-                            isDarkTheme = isDarkTheme,
-                            onClick = { onTrackClick(track.toAppTrack()) },
-                            onLongClick = {
-                                viewModel.toggleFavorite(track, false)
+                            darkTheme = darkMode,
+                            onItemClick = { onTrackSelected(track.toAppTrack()) },
+                            onItemLongPress = {
+                                viewModel.updateFavoriteStatus(track, false)
                             }
                         )
                     }

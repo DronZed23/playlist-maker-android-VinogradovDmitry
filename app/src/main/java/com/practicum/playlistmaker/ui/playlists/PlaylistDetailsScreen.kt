@@ -27,7 +27,7 @@ import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.domain.Playlist
 import com.practicum.playlistmaker.domain.Track
 import com.practicum.playlistmaker.presentation.AppTrack
-import com.practicum.playlistmaker.ui.components.TrackRow
+import com.practicum.playlistmaker.ui.components.TrackItem
 import com.practicum.playlistmaker.ui.materialTheme.YS
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -42,37 +42,41 @@ import com.practicum.playlistmaker.presentation.toAppTrack
 @Composable
 fun PlaylistDetailsScreen(
     playlistId: Long,
-    viewModel: PlaylistViewModel,
+    viewModel: PlaylistManagementViewModel,
     onBackClick: () -> Unit,
     onTrackClick: (AppTrack) -> Unit,
     isDarkTheme: Boolean
 ) {
+    // Состояние плейлиста
     var playlist by remember { mutableStateOf<Playlist?>(null) }
+    // Управление отображением модальных окон
     var showBottomSheet by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeletePlaylistDialog by remember { mutableStateOf(false) }
     var showDeleteTrackDialog by remember { mutableStateOf(false) }
-    var selectedTrack by remember { mutableStateOf<Track?>(null) }
+    var trackToDelete by remember { mutableStateOf<Track?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
 
+    // Загрузка плейлиста при изменении ID
     LaunchedEffect(playlistId) {
-        playlist = viewModel.getPlaylist(playlistId).firstOrNull()
+        playlist = viewModel.fetchPlaylist(playlistId).firstOrNull()
     }
 
+    // Цветовые схемы
+    val grayShade = Color(0xFFAEAFB4)
+    val backgroundMain = Color(0xFFE6E8EB)
+    val mainTextColor = Color(0xFF1A1B22)
+    val sheetBackgroundColor = if (isDarkTheme) Color(0xFF1A1B22) else Color.White
+    val sheetTextColor = if (isDarkTheme) Color.White else Color(0xFF1A1B22)
+    val sheetGrayColor = if (isDarkTheme) Color.White.copy(alpha = 0.84f) else Color(0xFFAEAFB4)
+    val sheetLightGrayColor = if (isDarkTheme) Color.White else Color(0xFFE6E8EB)
 
-    val grayColor = Color(0xFFAEAFB4)
-    val mainBg = Color(0xFFE6E8EB)
-    val mainText = Color(0xFF1A1B22)
-    val sheetBg = if (isDarkTheme) Color(0xFF1A1B22) else Color.White
-    val sheetText = if (isDarkTheme) Color.White else Color(0xFF1A1B22)
-    val sheetGray = if (isDarkTheme) Color.White.copy(alpha = 0.84f) else Color(0xFFAEAFB4)
-    val sheetLightGray = if (isDarkTheme) Color.White else Color(0xFFE6E8EB)
-
+    // Показываем индикатор загрузки, если плейлист не загружен
     if (playlist == null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(mainBg),
+                .background(backgroundMain),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
@@ -80,11 +84,12 @@ fun PlaylistDetailsScreen(
         return
     }
 
-    val pl = playlist!!
+    val playlistData = playlist!!
 
+    // Основной скелет с нижней панелью
     BottomSheetScaffold(
-        sheetPeekHeight = if (pl.tracks.isNotEmpty()) 61.dp else 0.dp,
-        sheetContainerColor = sheetBg,
+        sheetPeekHeight = if (playlistData.tracks.isNotEmpty()) 61.dp else 0.dp,
+        sheetContainerColor = sheetBackgroundColor,
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         sheetDragHandle = {
             Box(
@@ -97,19 +102,19 @@ fun PlaylistDetailsScreen(
                     modifier = Modifier
                         .width(50.dp)
                         .height(4.dp)
-                        .background(sheetLightGray, RoundedCornerShape(44.dp))
+                        .background(sheetLightGrayColor, RoundedCornerShape(44.dp))
                 )
             }
         },
         sheetContent = {
             LazyColumn {
-                items(pl.tracks) { track ->
-                    TrackRow(
+                items(playlistData.tracks) { track ->
+                    TrackItem(
                         track = track.toAppTrack(),
-                        isDarkTheme = isDarkTheme,
-                        onClick = { onTrackClick(track.toAppTrack()) },
-                        onLongClick = {
-                            selectedTrack = track
+                        darkTheme = isDarkTheme,
+                        onItemClick = { onTrackClick(track.toAppTrack()) },
+                        onItemLongPress = {
+                            trackToDelete = track
                             showDeleteTrackDialog = true
                         }
                     )
@@ -120,28 +125,27 @@ fun PlaylistDetailsScreen(
             .fillMaxSize()
             .padding(bottom = 16.dp)
     ) { innerPadding ->
+        // Основной контент плейлиста
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(mainBg)
+                .background(backgroundMain)
                 .padding(innerPadding)
         ) {
             item {
-                // ------ COVER -------
-
-                val coverContainerSize = 360.dp
-                val defaultThumbSize = 100.dp
+                // -------- Обложка --------
+                val coverSize = 360.dp
+                val defaultSize = 100.dp
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(coverContainerSize),
+                        .height(coverSize),
                     contentAlignment = Alignment.Center
                 ) {
                     val context = LocalContext.current
 
-                    pl.coverImageUri?.let { uriString ->
-
+                    playlistData.coverImageUri?.let { uriString ->
                         AsyncImage(
                             model = ImageRequest.Builder(context)
                                 .data(uriString.toUri())
@@ -149,48 +153,43 @@ fun PlaylistDetailsScreen(
                                 .crossfade(true)
                                 .build(),
                             contentDescription = null,
-                            modifier = Modifier
-                                .size(coverContainerSize),
+                            modifier = Modifier.size(coverSize),
                             contentScale = ContentScale.Crop
                         )
                     } ?: Image(
-
-                        painter = painterResource(id = R.drawable.ic_add_photo),
+                        painter = painterResource(id = R.drawable.ic_add_playlist_photo),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(grayColor),
+                        colorFilter = ColorFilter.tint(grayShade),
                         modifier = Modifier
-                            .size(defaultThumbSize)
-                            .clip(RoundedCornerShape(8.dp)),
+                            .size(defaultSize)
+                            .clip(RoundedCornerShape(8.dp))
                     )
                 }
                 Spacer(Modifier.height(24.dp))
-
-                // ------ TITLE ------
+                // -------- Заголовок --------
                 Text(
-                    text = pl.name,
+                    text = playlistData.name,
                     modifier = Modifier.padding(horizontal = 16.dp),
                     fontFamily = YS,
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
-                    color = mainText
+                    color = mainTextColor
                 )
                 Spacer(Modifier.height(12.dp))
-
-                // ------ DESCRIPTION ------
-                if (pl.description.isNotBlank()) {
+                // -------- Описание --------
+                if (playlistData.description.isNotBlank()) {
                     Text(
-                        text = pl.description,
+                        text = playlistData.description,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         fontFamily = YS,
                         fontWeight = FontWeight.Normal,
                         fontSize = 18.sp,
-                        color = mainText
+                        color = mainTextColor
                     )
                     Spacer(Modifier.height(8.dp))
                 }
-
-                // ------ MINUTES + TRACKS ------
-                val totalMinutes = pl.tracks.sumOf { it.trackTimeMillis } / 60000
+                // -------- Минуты + Треки --------
+                val totalMinutes = playlistData.tracks.sumOf { it.trackTimeMillis } / 60000
                 val minutesCount = totalMinutes.toInt()
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -200,26 +199,25 @@ fun PlaylistDetailsScreen(
                         pluralStringResource(R.plurals.minutes, minutesCount, minutesCount),
                         fontFamily = YS,
                         fontSize = 18.sp,
-                        color = mainText
+                        color = mainTextColor
                     )
                     Spacer(Modifier.width(6.dp))
                     Box(
                         modifier = Modifier
                             .size(3.dp)
-                            .background(grayColor, CircleShape)
+                            .background(grayShade, CircleShape)
                             .offset(y = 5.dp)
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        pluralStringResource(R.plurals.tracks, pl.tracks.size, pl.tracks.size),
+                        pluralStringResource(R.plurals.tracks, playlistData.tracks.size, playlistData.tracks.size),
                         fontFamily = YS,
                         fontSize = 18.sp,
-                        color = mainText
+                        color = mainTextColor
                     )
                 }
                 Spacer(Modifier.height(16.dp))
-
-                // ------ MORE ICON -> OPEN SHEET ------
+                // -------- Кнопка "Еще" --------
                 IconButton(
                     onClick = { showBottomSheet = true },
                     modifier = Modifier
@@ -227,9 +225,9 @@ fun PlaylistDetailsScreen(
                         .size(24.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_more),
+                        painter = painterResource(id = R.drawable.ic_more_button),
                         contentDescription = null,
-                        tint = mainText
+                        tint = mainTextColor
                     )
                 }
                 Spacer(Modifier.height(16.dp))
@@ -238,12 +236,12 @@ fun PlaylistDetailsScreen(
         }
     }
 
-    // === MODAL BOTTOM SHEET ===
+    // === Модальный нижний лист ===
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState,
-            containerColor = sheetBg,
+            containerColor = sheetBackgroundColor,
             shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
             dragHandle = null
         ) {
@@ -260,12 +258,11 @@ fun PlaylistDetailsScreen(
                             .align(Alignment.Center)
                             .width(50.dp)
                             .height(4.dp)
-                            .background(sheetLightGray, RoundedCornerShape(44.dp))
+                            .background(sheetLightGrayColor, RoundedCornerShape(44.dp))
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-
-                // PLAYLIST INFO ITEM
+                // -------- Информация о плейлисте --------
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -273,7 +270,7 @@ fun PlaylistDetailsScreen(
                         .padding(start = 13.dp, end = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    pl.coverImageUri?.let { uriString ->
+                    playlistData.coverImageUri?.let { uriString ->
                         AsyncImage(
                             model = uriString.toUri(),
                             contentDescription = null,
@@ -283,9 +280,9 @@ fun PlaylistDetailsScreen(
                             contentScale = ContentScale.Crop
                         )
                     } ?: Image(
-                        painter = painterResource(id = R.drawable.ic_add_photo),
+                        painter = painterResource(id = R.drawable.ic_add_playlist_photo),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(sheetGray),
+                        colorFilter = ColorFilter.tint(sheetGrayColor),
                         modifier = Modifier
                             .size(45.dp)
                             .clip(RoundedCornerShape(2.dp))
@@ -293,31 +290,29 @@ fun PlaylistDetailsScreen(
                     Spacer(modifier = Modifier.width(4.dp))
                     Column {
                         Text(
-                            text = pl.name,
+                            text = playlistData.name,
                             fontFamily = YS,
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,
                             lineHeight = 19.sp,
-                            color = sheetText,
+                            color = sheetTextColor,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
-
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            pluralStringResource(R.plurals.tracks, pl.tracks.size, pl.tracks.size),
+                            pluralStringResource(R.plurals.tracks, playlistData.tracks.size, playlistData.tracks.size),
                             fontFamily = YS,
                             fontWeight = FontWeight.Normal,
                             fontSize = 11.sp,
                             lineHeight = 13.sp,
-                            color = sheetGray,
+                            color = sheetGrayColor,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
-
-                // SHARE
+                // -------- Кнопки --------
                 Text(
                     text = stringResource(R.string.share),
                     fontFamily = YS,
@@ -328,10 +323,8 @@ fun PlaylistDetailsScreen(
                         .fillMaxWidth()
                         .clickable { /* TODO share */ }
                         .padding(start = 16.dp, top = 21.dp, bottom = 21.dp),
-                    color = sheetText
+                    color = sheetTextColor
                 )
-
-                // EDIT
                 Text(
                     text = stringResource(R.string.edit_playlist),
                     fontFamily = YS,
@@ -342,10 +335,8 @@ fun PlaylistDetailsScreen(
                         .fillMaxWidth()
                         .clickable { /* TODO */ }
                         .padding(start = 16.dp, top = 21.dp, bottom = 21.dp),
-                    color = sheetText
+                    color = sheetTextColor
                 )
-
-                // DELETE
                 Text(
                     text = stringResource(R.string.delete_playlist),
                     fontFamily = YS,
@@ -356,27 +347,27 @@ fun PlaylistDetailsScreen(
                         .fillMaxWidth()
                         .clickable {
                             showBottomSheet = false
-                            showDeleteDialog = true
+                            showDeletePlaylistDialog = true
                         }
                         .padding(start = 16.dp, top = 21.dp, bottom = 21.dp),
-                    color = sheetText
+                    color = sheetTextColor
                 )
                 Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
 
-    // === DELETE PLAYLIST DIALOG ===
-    if (showDeleteDialog) {
+    // === Диалог подтверждения удаления плейлиста ===
+    if (showDeletePlaylistDialog) {
         AlertDialog(
             shape = RoundedCornerShape(4.dp),
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { showDeletePlaylistDialog = false },
             containerColor = Color.White,
             tonalElevation = 16.dp,
             title = null,
             text = {
                 Text(
-                    text = stringResource(R.string.delete_playlist_message, pl.name),
+                    text = stringResource(R.string.delete_playlist_message, playlistData.name),
                     color = Color(0xFF1A1B22),
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
@@ -385,8 +376,8 @@ fun PlaylistDetailsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.deletePlaylistById(playlistId)
-                    showDeleteDialog = false
+                    viewModel.removePlaylist(playlistId)
+                    showDeletePlaylistDialog = false
                     onBackClick()
                 }) {
                     Text(
@@ -400,7 +391,7 @@ fun PlaylistDetailsScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = { showDeletePlaylistDialog = false }) {
                     Text(
                         text = stringResource(R.string.cancel).uppercase(),
                         color = Color(0xFF3772E7),
@@ -414,8 +405,8 @@ fun PlaylistDetailsScreen(
         )
     }
 
-    // === DELETE TRACK DIALOG ===
-    if (showDeleteTrackDialog && selectedTrack != null) {
+    // === Диалог подтверждения удаления трека ===
+    if (showDeleteTrackDialog && trackToDelete != null) {
         AlertDialog(
             shape = RoundedCornerShape(4.dp),
             onDismissRequest = { showDeleteTrackDialog = false },
@@ -424,7 +415,7 @@ fun PlaylistDetailsScreen(
             title = null,
             text = {
                 Text(
-                    text = stringResource(R.string.delete_playlist_message, selectedTrack!!.trackName),
+                    text = stringResource(R.string.delete_playlist_message, trackToDelete!!.trackName),
                     color = Color(0xFF1A1B22),
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
@@ -433,8 +424,8 @@ fun PlaylistDetailsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    scope.launch {
-                        viewModel.deleteTrackFromPlaylist(selectedTrack!!.trackId, playlistId)
+                    coroutineScope.launch {
+                        viewModel.removeTrackFromPlaylist(trackToDelete!!.trackId, playlistId)
                     }
                     showDeleteTrackDialog = false
                 }) {

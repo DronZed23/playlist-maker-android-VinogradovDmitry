@@ -21,8 +21,8 @@ import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.domain.Track
 import com.practicum.playlistmaker.presentation.AppTrack
 import com.practicum.playlistmaker.ui.materialTheme.YS
-import com.practicum.playlistmaker.ui.playlists.PlaylistViewModel
-import com.practicum.playlistmaker.ui.components.PlaylistRow
+import com.practicum.playlistmaker.ui.playlists.PlaylistManagementViewModel
+import com.practicum.playlistmaker.ui.components.PlaylistItem
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.flow.firstOrNull
@@ -40,7 +40,7 @@ import kotlin.math.max
 @Composable
 fun TrackDetailsScreen(
     appTrack: AppTrack,
-    playlistViewModel: PlaylistViewModel,
+    playlistViewModel: PlaylistManagementViewModel,
     onBackClick: () -> Unit,
     isDarkTheme: Boolean
 ) {
@@ -49,7 +49,7 @@ fun TrackDetailsScreen(
     var showSheet by remember { mutableStateOf(false) }
     var isFavorite by remember { mutableStateOf(false) }
     LaunchedEffect(appTrack) {
-        val existing = playlistViewModel.getTrackById(appTrack.trackId).firstOrNull()
+        val existing = playlistViewModel.fetchTrackById(appTrack.trackId).firstOrNull()
         isFavorite = existing?.favorite ?: false
     }
     val backgroundColor = if (isDarkTheme) Color(0xFF1A1B22) else Color.White
@@ -79,7 +79,7 @@ fun TrackDetailsScreen(
                 ) {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_left),
+                            painter = painterResource(id = R.drawable.ic_arrow_left_icon),
                             contentDescription = null,
                             modifier = Modifier.size(24.dp),
                             tint = textColor
@@ -97,9 +97,9 @@ fun TrackDetailsScreen(
                         .data(highResUrl)
                         .crossfade(true)
                         .build(),
-                    placeholder = rememberAsyncImagePainter(lowResUrl ?: R.drawable.ic_music),
-                    error = painterResource(R.drawable.ic_music),
-                    fallback = painterResource(R.drawable.ic_music),
+                    placeholder = rememberAsyncImagePainter(lowResUrl ?: R.drawable.ic_music_image),
+                    error = painterResource(R.drawable.ic_music_image),
+                    fallback = painterResource(R.drawable.ic_music_image),
                     contentDescription = null,
                     modifier = Modifier
                         .padding(start = 24.dp, end = 24.dp)
@@ -147,7 +147,7 @@ fun TrackDetailsScreen(
                 ) {
                     IconButton(onClick = { showSheet = true }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_add_to_playlist),
+                            painter = painterResource(id = R.drawable.ic_add_for_playlist_icon),
                             contentDescription = stringResource(R.string.add_to_playlist),
                             tint = Color.White,
                             modifier = Modifier
@@ -167,10 +167,10 @@ fun TrackDetailsScreen(
                             artworkUrl100 = appTrack.artworkUrl100,
                             previewUrl = null
                         )
-                        playlistViewModel.toggleFavorite(domainTrack, isFavorite)
+                        playlistViewModel.setTrackFavoriteStatus(domainTrack, isFavorite)
                     }) {
                         Icon(
-                            painter = painterResource(id = if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_outline),
+                            painter = painterResource(id = if (isFavorite) R.drawable.ic_favorite_fill_icon else R.drawable.ic_favorite_line_icon),
                             contentDescription = stringResource(R.string.favorite),
                             tint = Color.White,
                             modifier = Modifier
@@ -253,20 +253,20 @@ fun TrackDetailsScreen(
 
                     Spacer(modifier = Modifier.height(23.dp))
 
-                    val playlists by playlistViewModel.playlists.collectAsState(emptyList())
+                    val playlists by playlistViewModel.allPlaylists.collectAsState(emptyList())
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f),
                         contentPadding = PaddingValues(bottom = 24.dp)
                     ) {
                         items(playlists, key = { it.id }) { pl ->
-                            PlaylistRow(
+                            PlaylistItem(
                                 playlist = pl,
                                 textColor = sheetText,
                                 secondaryColor = sheetGray,
                                 backgroundColor = sheetBg,
-                                showChevron = false,
-                                onClick = {
+                                displayChevron = false,
+                                onItemClick = {
                                     val domainTrack = Track(
                                         trackId = appTrack.trackId,
                                         trackName = appTrack.trackName,

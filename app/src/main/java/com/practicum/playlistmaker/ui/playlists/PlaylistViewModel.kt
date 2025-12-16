@@ -3,9 +3,9 @@ package com.practicum.playlistmaker.ui.playlists
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicum.playlistmaker.domain.Playlist
-import com.practicum.playlistmaker.domain.PlaylistsRepository
+import com.practicum.playlistmaker.domain.PlaylistCollectionRepository
 import com.practicum.playlistmaker.domain.Track
-import com.practicum.playlistmaker.domain.TracksLocalRepository
+import com.practicum.playlistmaker.domain.TrackStorageRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,50 +13,51 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class PlaylistViewModel(
-    private val playlistsRepository: PlaylistsRepository,
-    private val tracksLocalRepository: TracksLocalRepository
+// Вью модель для управления плейлистами
+class PlaylistManagementViewModel(
+    private val playlistRepo: PlaylistCollectionRepository,
+    private val trackLocalRepo: TrackStorageRepository
 ) : ViewModel() {
-    val playlists: Flow<List<Playlist>> = playlistsRepository.getAllPlaylists().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val allPlaylists: Flow<List<Playlist>> = playlistRepo.fetchAllPlaylists().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    private val _coverImageUri = MutableStateFlow<String?>(null)
-    val coverImageUri: Flow<String?> = _coverImageUri.asStateFlow()
+    private val _playlistCoverUri = MutableStateFlow<String?>(null)
+    val playlistCoverUri: Flow<String?> = _playlistCoverUri.asStateFlow()
 
-    fun setCoverImageUri(uri: String?) {
-        _coverImageUri.value = uri
+    fun updateCoverUri(uri: String?) {
+        _playlistCoverUri.value = uri
     }
 
-    fun getPlaylist(id: Long): Flow<Playlist?> = playlistsRepository.getPlaylist(id)
+    fun fetchPlaylist(id: Long): Flow<Playlist?> = playlistRepo.fetchPlaylistById(id)
 
-    fun createNewPlaylist(name: String, description: String) {
+    fun createPlaylist(name: String, description: String) {
         viewModelScope.launch {
-            playlistsRepository.addNewPlaylist(name, description, _coverImageUri.value)
+            playlistRepo.createPlaylist(name, description, _playlistCoverUri.value)
         }
     }
 
-    fun deletePlaylistById(id: Long) {
+    fun removePlaylist(id: Long) {
         viewModelScope.launch {
-            playlistsRepository.deletePlaylistById(id)
+            playlistRepo.removePlaylist(id)
         }
     }
 
     fun addTrackToPlaylist(track: Track, playlistId: Long) {
         viewModelScope.launch {
-            tracksLocalRepository.insertTrackToPlaylist(track, playlistId)
+            trackLocalRepo.addTrackToPlaylist(track, playlistId)
         }
     }
 
-    fun toggleFavorite(track: Track, isFavorite: Boolean) {
+    fun setTrackFavoriteStatus(track: Track, favoriteStatus: Boolean) {
         viewModelScope.launch {
-            tracksLocalRepository.updateTrackFavoriteStatus(track, isFavorite)
+            trackLocalRepo.setTrackFavoriteStatus(track, favoriteStatus)
         }
     }
 
-    fun getTrackById(trackId: Long): Flow<Track?> = tracksLocalRepository.getTrackById(trackId)
+    fun fetchTrackById(trackId: Long): Flow<Track?> = trackLocalRepo.fetchTrackById(trackId)
 
-    fun deleteTrackFromPlaylist(trackId: Long, playlistId: Long) {
+    fun removeTrackFromPlaylist(trackId: Long, playlistId: Long) {
         viewModelScope.launch {
-            tracksLocalRepository.deleteTrackFromPlaylist(trackId, playlistId)
+            trackLocalRepo.removeTrackFromPlaylist(trackId, playlistId)
         }
     }
 }
